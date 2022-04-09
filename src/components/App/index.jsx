@@ -19,7 +19,6 @@ const FeedSearchWrapper = () => {
   return (
     <div>
       <FeedSearchBar/>
-      <Button type="primary">Button</Button>
       <FeedSearchResult/>
     </div>
   )

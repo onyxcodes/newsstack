@@ -1,0 +1,21 @@
+import axios from "axios";
+
+export default ( query ) => {
+    return new Promise ( (resolve, reject) => {
+        axios({
+            "method": "GET",
+            "url": "https://feedsearch.dev/api/v1/search",
+            "headers": {
+                "crossorigin":true
+            }, "params": {
+                "query": encodeURI(query)
+            }
+        })
+        .then(({data}) => {
+            if (data && data.length) resolve(data)
+        })
+        .catch((error) => {
+            console.log(error)
+        })
+    });
+}

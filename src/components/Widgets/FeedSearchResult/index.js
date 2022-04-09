@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 
 class FeedSearchResult extends Component {
   render() {
-    const {works} = this.props;
+    const {feeds} = this.props;
 
     return (
       <table className="table table-hover">
@@ -12,16 +12,17 @@ class FeedSearchResult extends Component {
             <th>Nome</th>
           </tr>
         </thead>
-        <tbody>{works.map((work) => <tr key={work}><td>{work}</td></tr>)}</tbody>
+        <tbody>{feeds?.content?.map((feed, index) => <tr key={index}><td>{feed?.title}</td></tr>)}</tbody>
       </table>
     );
   }
 }
 
-function mapStateToProps({works}) {
-  return {
-    works: works.works
-  }
+function mapStateToProps({feeds}) {
+    if ( feeds && feeds?.content?.length) {
+        return { feeds }
+    }
+    return { feeds: []}
 }
 
 export default connect(mapStateToProps)(FeedSearchResult);

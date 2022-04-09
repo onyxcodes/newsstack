@@ -2,28 +2,38 @@ import React, {Component} from 'react';
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {search} from '../../../features/feedsearch';
+import {search, feedSearch} from '../../../features/feedsearch';
+import { Input, Space } from 'antd';
+const { Search } = Input;
 
 class FeedSearchBar extends Component {
   render() {
-    const {search, value} = this.props;
+    const {feedSearch, value} = this.props;
 
     return (
-        <input
-          className="form-control"
-          placeholder = "Procurar Trabalho"
-          onChange={(e) => search(e.target.value)}
-          value={value} />
+      <Search
+      placeholder="input search text"
+      allowClear
+      enterButton="Search"
+      size="large"
+      value={value}
+      onSearch={(value) => feedSearch(value)}
+    />
+        // <input
+        //   className="form-control"
+        //   placeholder = "Procurar Trabalho"
+        //   onChange={(e) => search(e.target.value)}
+        //   value={value} />
     );
   }
 } 
 
-function mapStateToProps({works}) {
-    return {value: works.value};
+function mapStateToProps({feeds}) {
+    return {value: feeds.query};
   }
   
   function mapDispatchToProps(dispatch) {
-    return bindActionCreators({search}, dispatch);
+    return bindActionCreators({feedSearch}, dispatch);
   }
   
   export default connect(mapStateToProps, mapDispatchToProps)(FeedSearchBar);

@@ -12,7 +12,7 @@ import firebaseauth from './features/firebaseauth';
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
-    works: feedsearch,
+    feeds: feedsearch,
     auth: firebaseauth
   },
 });
