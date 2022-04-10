@@ -6,7 +6,9 @@ export default ( query ) => {
             "method": "GET",
             "url": "https://feedsearch.dev/api/v1/search",
             "headers": {
-                "crossorigin":true
+                "crossorigin":true,
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Headers": "*"
             }, "params": {
                 "query": encodeURI(query)
             }
