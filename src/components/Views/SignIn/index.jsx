@@ -10,7 +10,7 @@ class SignIn extends Component {
       const { signIn, auth } = this.props;
     return (
       <div className="row social-signin-container">
-          {auth && (
+        {auth && (
           <Navigate to="/app" replace={true} />
         )}
         <button className="social-signin" onClick={() => signIn()}>

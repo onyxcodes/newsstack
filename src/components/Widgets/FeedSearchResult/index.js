@@ -1,28 +1,40 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import logger from '../../../utils/logger';
+import FeedListItem from '../FeedListItem';
+import { List } from 'antd';
 
 class FeedSearchResult extends Component {
   render() {
-    const {feeds} = this.props;
-
+    const { feeds } = this.props;
+    logger.info({ feeds: feeds }, 'FeedSearchResult - Got feeds');
     return (
-      <table className="table table-hover">
-        <thead>
-          <tr>
-            <th>Nome</th>
-          </tr>
-        </thead>
-        <tbody>{feeds?.content?.map((feed, index) => <tr key={index}><td>{feed?.title}</td></tr>)}</tbody>
-      </table>
+      <List
+        itemLayout="vertical"
+        size="large"
+        pagination={{
+          onChange: page => {
+            console.log(page);
+          },
+          pageSize: 8,
+        }}
+        dataSource={feeds?.content}
+        footer={
+          <div>
+            <b>ant design</b> footer part
+          </div>
+        }
+        renderItem={item => (<FeedListItem item={item} />)}
+      />
     );
   }
 }
 
-function mapStateToProps({feeds}) {
-    if ( feeds && feeds?.content?.length) {
-        return { feeds }
-    }
-    return { feeds: []}
+function mapStateToProps({ feeds }) {
+  if (feeds && feeds?.content?.length) {
+    return { feeds }
+  }
+  return { feeds: [] }
 }
 
 export default connect(mapStateToProps)(FeedSearchResult);

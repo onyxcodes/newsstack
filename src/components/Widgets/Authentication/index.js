@@ -6,7 +6,7 @@ class Auth extends Component {
     render(){
         const {authenticated} = this.props;
         return (
-            // As of now navigate to root
+            // If not authenticate navigate to root
             <div>
                 { !authenticated && (
                     <Navigate to="/" replace={true} />

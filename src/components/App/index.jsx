@@ -14,12 +14,28 @@ import { fetchUser } from "../../features/firebaseauth";
 import Auth from "../Widgets/Authentication";
 import SignIn from "../Views/SignIn";
 
+import DbManager from "../../utils/dbManager";
+import Schema from "../../utils/dbManager/Schema";
+import Attribute from "../../utils/dbManager/Attribute";
+
+const TestBed = () => {
+  console.log(Schema)
+  console.log(Attribute)
+  let testDbMg = new DbManager("testDb")
+  debugger;
+  return (
+    <div>
+      <button>GO</button>
+    </div>
+  )
+}
+
 const FeedSearchWrapper = () => {
-  // NOTE: button is fake as of now
   return (
     <div>
       <FeedSearchBar/>
       <FeedSearchResult/>
+      <TestBed/>
     </div>
   )
 }
