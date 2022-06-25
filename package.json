@@ -1,6 +1,7 @@
 {
-  "name": "my-webpack-project",
-  "version": "1.0.0",
+  "name": "newsstack",
+  "proxy": "https://feedsearch.dev",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@hot-loader/react-dom": "^17.0.2",
