@@ -15,13 +15,14 @@ import Auth from "../Widgets/Authentication";
 import SignIn from "../Views/SignIn";
 
 import DbManager from "../../utils/dbManager";
-import Schema from "../../utils/dbManager/Schema";
+import Class from "../../utils/dbManager/Class";
 import Attribute from "../../utils/dbManager/Attribute";
 
 const TestBed = () => {
-  console.log(Schema)
+  console.log(Class);
   console.log(Attribute)
-  let testDbMg = new DbManager("testDb")
+  let testDbMg = new DbManager("testDb");
+  
   debugger;
   return (
     <div>

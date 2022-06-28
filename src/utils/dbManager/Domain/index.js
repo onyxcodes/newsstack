@@ -1,12 +1,9 @@
 import Attribute from '../Attribute'
 
-const CLASS_TYPE = "class";
 const DOMAIN_TYPE = "domain";
-const SCHEMA_TYPES = [CLASS_TYPE, DOMAIN_TYPE];
 
-
-class Schema {
-    constructor(name, type = CLASS_TYPE, description = name) {
+class Domain {
+    constructor(name, type = DOMAIN_TYPE, description = name) {
         this.name = name;
         this.description = description;
         this.setType(type);
@@ -40,20 +37,16 @@ class Schema {
         return model;
     }
 
-
-
     setType( type ) {
         if ( this.checkTypeValidity(type) ) {
             this.type = type;
-        } else throw Error("Schema - Invalid type: "+type)
+        } else throw Error("Domain - Invalid type: "+type)
         // return this?
     }
 
     checkTypeValidity( type ) {
         let validity = false;
-        if ( SCHEMA_TYPES.includes(type) ) {
-            validity = true;
-        }
+        validity = type == DOMAIN_TYPE;
         return validity;
     }
 
@@ -95,11 +88,11 @@ class Schema {
             let name = attribute.getName();
             if ( !this.hasAttribute(name) ) {
                 this.attributes.push(attribute);
-            } else throw Error("Attribute with name "+name+" already exists within this Schema")
+            } else throw Error("Attribute with name "+name+" already exists within this Domain")
             // TODO: improve error above
         } catch (e) {
             // TODO:
-            console.log("Schema - got error while adding attribute",e);
+            console.log("Domain - got error while adding attribute",e);
         }
     }
 
@@ -108,14 +101,14 @@ class Schema {
             if ( !this.hasAttribute(name) ) {
                 let attribute = new Attribute(this, name, type);
                 this.attributes.push(attribute);
-            } else throw Error("Attribute with name "+name+" already exists within this Schema")
+            } else throw Error("Attribute with name "+name+" already exists within this Domain")
             // TODO: improve error above
         } catch (e) {
             // TODO:
-            console.log("Schema - got error while adding attribute",e);
+            console.log("Domain - got error while adding attribute",e);
         }
     }
 }
 
 
-export default Schema;
+export default Domain;

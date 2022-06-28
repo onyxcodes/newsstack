@@ -55,7 +55,7 @@ class Attribute {
     getTypeRegex( type, config ) {
         config = Object.assign({ charLength: 50, isArray: false }, config );
         switch( type ) {
-            // TOOD: add missing cases and change values to imported const 
+            // TODO: add missing cases and change values to imported const 
             case "string":
             default:
                 return "^[a-zA-Z0-9_\\s]".concat("{0,"+config.charLength+"}$");

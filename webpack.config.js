@@ -28,7 +28,6 @@ const config = {
         cookieDomainRewrite: "localhost",
         target: "https://cloud.feedly.com/v3/",
         onProxyReq: (proxyReq) => {
-          // console.log("Performing proxy req",proxyReq);
           if (proxyReq.getHeader("origin")) {
             proxyReq.setHeader("origin", api);
           }
