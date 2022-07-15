@@ -20,14 +20,22 @@ export const fetchUser = () => dispatch => {
 };
 
 export const signIn = () => dispatch => {
-    authRef
-      .signInWithPopup(provider)
-      .then(result => {
-      })
-      .catch(error => {
-        console.log(error);
-      });
-  };
+  authRef
+    .signInWithPopup(provider)
+    .then(result => {
+    })
+    .catch(error => {
+      console.log(error);
+    });
+};
+
+export const skipSignIn = () => dispatch => {
+  // Attempt to "simulate" a successful login by dispatching any (not null) value
+  dispatch({
+    type: FETCH_USER,
+    payload: 1
+  });
+}
   
 export const signOut = () => dispatch => {
     authRef

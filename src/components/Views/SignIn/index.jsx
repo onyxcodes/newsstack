@@ -2,12 +2,12 @@ import "./index.css";
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import {bindActionCreators} from 'redux';
-import { signIn } from "../../../features/firebaseauth";
+import { signIn, skipSignIn } from "../../../features/firebaseauth";
 import { Navigate } from 'react-router-dom';
 
 class SignIn extends Component {
   render() {
-      const { signIn, auth } = this.props;
+      const { signIn, skipSignIn, auth } = this.props;
     return (
       <div className="row social-signin-container">
         {auth && (
@@ -15,6 +15,8 @@ class SignIn extends Component {
         )}
         <button className="social-signin" onClick={() => signIn()}>
             {/* <Link to="/">Entra</Link> */}Entra con google
+        </button>
+        <button onClick={() => skipSignIn()}>Salta login
         </button>
       </div>
     );
@@ -28,7 +30,7 @@ function mapStateToProps({ auth }) {
 }
 
 function mapDispatchToProps(dispatch) {
-    return bindActionCreators({signIn}, dispatch);
+    return bindActionCreators({signIn, skipSignIn}, dispatch);
 }
 
 // export default connect(mapStateToProps, { signIn })(SignIn);

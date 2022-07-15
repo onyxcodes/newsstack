@@ -20,6 +20,7 @@ const config = {
   devServer: {
     // contentBase: './app',
     host: "localhost",
+    // disableHostCheck: true,   // To run on replit
     open: true,
     hot: true,
     proxy: {
