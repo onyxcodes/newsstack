@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import counterReducer from './features/counter/counterSlice';
-import feedsearch from './features/feedsearch'
+import search from './features/feedly';
 import firebaseauth from './features/firebaseauth';
 /* TODO: Configure reducers for:
  * Feedsearch
@@ -12,7 +12,8 @@ import firebaseauth from './features/firebaseauth';
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
-    feeds: feedsearch,
+    // feeds: feedsearch,
+    feeds: search,
     auth: firebaseauth
   },
 });
