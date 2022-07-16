@@ -207,9 +207,15 @@ class DbManager {
     prepareDoc (_id, type, params) {
         logger.info({_id: _id, type: type, params: params}, "prepaerDoc - given args");
         let doc = {};
+        // TODO: attempt to stringify any array value
+        for ( const [key, value] of Object.entries(params) ) {
+            if (value instanceof Array && value.length ) {
+                params[key] = JSON.stringify(value);
+            }
+        }
         doc = Object.assign(doc, params);
         // TODO: consider managin defaults in another way
-        var defaults = { type: type, timestamp: new Date().toISOString() };
+        var defaults = { type: type, testArr: [1, 2, 3], timestamp: new Date().toISOString() };
         if ( _id != null ) defaults = Object.assign(defaults, { _id: _id});
         doc = Object.assign(doc, defaults);
         logger.info({"doc": doc}, "prepareDoc - after elaborations");
@@ -220,9 +226,14 @@ class DbManager {
         let db = this.db;
         try {
             let doc = this.prepareDoc(docId, type, params);
+            debugger;
             let response = docId ? await db.put(doc) : await db.post(doc);
             logger.info({"response": response}, "createDoc - Response after put");
-            if (response.ok) return response.id
+            if (response.ok) {
+                let uploadedDoc = await db.get(response.id);
+                logger.info({"doc": uploadedDoc}, "createDoc - Uploaded doc")
+                return response.id;
+            }
             else throw new Error(response)
         } catch (e) {
             logger.error({"error": e}, "createDoc - Problem while putting doc")
@@ -255,6 +266,11 @@ class DbManager {
     async addClass( classObj ) {
         // let doc = this.db.prepareDoc(null, classObj.getType(), classObj);
         let result = await this.createDoc(null, classObj.getType(), classObj.getModel());
+        return result;
+    }
+
+    async updateClass( classObj ) {
+        let result = await this.createDoc(classObj.getId(), classObj.getType(), classObj.getModel());
         return result;
     }
     ////////////////////////////////////////////////////

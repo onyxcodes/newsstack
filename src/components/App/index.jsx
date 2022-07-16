@@ -23,24 +23,26 @@ const TestBed = () => {
   console.log(Attribute)
   let testDbMg = new DbManager("testDb");
   var TestClass = new Class(testDbMg, "TestClass", "class");
-
   // Create attribute and adds it to above class
-  var TestAttribute = new Attribute("TestAttribute", "string", { charLength: 100 })
-
-  // add attribute to TestClass
-  TestClass.addAttribute(TestAttribute);
-
-  // Should cause error since attribute with the same name was already added 
-  try {
-    let TestAttributeWithClass = new Attribute("TestAttribute", "string", { charLength: 100 }, TestClass);
-  } catch (e) {
-    console.log("Error", e);
-  }
- 
-  // Should auto add attribute to above class
-  let TestAnotherAttrWithClass = new Attribute("TestAnotherAttr", "string", { charLength: 100, isArray: true }, TestClass);
+  var TestAttribute = new Attribute("TestAttribute", "string", { charLength: 100 });
   debugger;
+  ( async () => {
+    TestClass = await Class.build(TestClass);
+    // add attribute to TestClass
+    await TestClass.addAttribute(TestAttribute);
+      // Should cause error since attribute with the same name was already added 
+    let TestAttributeWithClass;
+    try {
+      TestAttributeWithClass = new Attribute("TestAttribute", "string", { charLength: 100 }, TestClass);
+    } catch (e) {
+      console.log("Error", e);
+    }
+    // Should auto add attribute to above class
+    let TestAnotherAttrWithClass = new Attribute("TestAnotherAttr", "string", { charLength: 100, isArray: true }, TestClass);
+    TestAnotherAttrWithClass = await Attribute.build(TestAnotherAttrWithClass)
+  })();
 
+  debugger;
   // dbManager specific tests
   // let testPreparedDoc = testDbMg.prepareDoc(null, "TestClass", )
   return (

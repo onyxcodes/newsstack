@@ -15,12 +15,27 @@ class Attribute {
         if ( classObj ) {
             // attempt to add attribute
             this.class = classObj;
-            this.class.addAttribute(this);
         }
     }
 
     getModel() {
         return this.model || {};
+    }
+
+    getClass() {
+        if (this.class) return this.class
+        else throw Error("Missing class configuration for this attribute");
+    }
+
+    static async build( attributeObj ) {
+        let classObj = attributeObj.getClass();
+        let db = classObj.getDb();
+        if ( db ) {
+            await classObj.addAttribute(attributeObj);
+            return attributeObj;
+        } else {
+            throw new Error("Missing db configuration");
+        }
     }
 
     setModel( model ) {

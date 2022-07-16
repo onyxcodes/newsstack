@@ -7,16 +7,35 @@ const CLASS_TYPES = [CLASS_TYPE, SUPERCLASS_TYPE];
 
 class Class {
     constructor(db = null, name, type = CLASS_TYPE, title = name, parentClassName = null) {
-        this.name = name;
-        this.title = title;
-        this.setType(type);
-        this.attributes = [];
+        this.name = name,
+            this.title = title,
+            this.setType(type),
+            this.attributes = [],
+            this.db = null,
+            this.id = null,
+            this.parentClass = null;
         if ( db ) {
             this.db = db;
-            // this.setParentClass(parentClassName);
-            this.db.addClass(this); // TODO: yet to implement
         }
     }
+
+    static async build( classObj ) {
+        let db = classObj.getDb();
+        if ( db ) {
+            // if (parentClassName) this.setParentClass(parentClassName);
+            let id = await db.addClass(classObj);
+            classObj.setId(id);
+            return classObj;
+        } else {
+            throw new Error("Missing db configuration");
+        }
+
+    }
+
+    setId( id ) {
+        if ( id ) this.id = id;
+        else throw Error("Missing id");
+    } 
 
     getName() {
         return this.name;
@@ -32,6 +51,10 @@ class Class {
 
     getType() {
         return this.type;
+    }
+
+    getId() {
+        return this.id;
     }
 
     getModel() {
@@ -101,7 +124,7 @@ class Class {
         let attributes = this.getAttributes(names);
         for ( let attribute of attributes ) {
             result = names.includes(attribute.getName())
-            if ( result ) break;
+            if ( !result ) break;
         }
         return result;
     }
@@ -111,12 +134,12 @@ class Class {
         let attributes = this.getAttributes(names);
         for ( let attribute of attributes ) {
             result = names.includes(attribute.getName())
-            if ( !result ) break;
+            if ( result ) break;
         }
         return result;
     }
 
-    // interface of hasAllAttributes
+    // interface of hasAnyAttributes
     hasAttribute( name ) {
         return this.hasAnyAttributes( name )
     }
@@ -125,13 +148,17 @@ class Class {
      * 
      * @param {Attribute} attribute 
      */
-    addAttribute( attribute ) {
+    async addAttribute( attribute ) {
         try {
             let name = attribute.getName();
             if ( !this.hasAttribute(name) ) {
                 this.attributes.push(attribute);
-                // TODO: Check if this class has subclasses
-                // if ( this.class ) 
+                // update class on db
+                if ( this.db && this.id ) {
+                    this.db.updateClass(this);
+                    // TODO: Check if this class has subclasses
+                    // if ( this.class ) 
+                }
                 return this; // return class object
             } else throw Error("Attribute with name "+name+" already exists within this Class")
         } catch (e) {
@@ -139,17 +166,9 @@ class Class {
         }
     }
 
-    addNewAttribute( name, type ) {
-        try {
-            if ( !this.hasAttribute(name) ) {
-                let attribute = new Attribute(this, name, type);
-                this.attributes.push(attribute);
-            } else throw Error("Attribute with name "+name+" already exists within this Class")
-            // TODO: improve error above
-        } catch (e) {
-            // TODO:
-            console.log("Class - got error while adding attribute",e);
-        }
+    async addNewAttribute( name, type ) {
+        let attribute = new Attribute(this, name, type);
+        await this.addAttribute(attribute);
     }
 }
 
