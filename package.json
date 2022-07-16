@@ -27,8 +27,7 @@
     "react-router-dom": "^6.3.0",
     "react-scripts": "5.0.0",
     "typescript": "^4.6.3",
-    "web-vitals": "^2.1.4",
-    "winston": "^3.7.2"
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "NODE_ENV=development webpack serve --mode development --progress",

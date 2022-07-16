@@ -1,34 +1,29 @@
 import Attribute from '../Attribute'
-import DbManager from '..';
+// import DbManager from '..';
 
 const CLASS_TYPE = "class";
 const SUPERCLASS_TYPE = "superclass";
 const CLASS_TYPES = [CLASS_TYPE, SUPERCLASS_TYPE];
 
 class Class {
-    constructor(dbName, name, type = CLASS_TYPE, title = name, parentClassName = null) {
+    constructor(db = null, name, type = CLASS_TYPE, title = name, parentClassName = null) {
         this.name = name;
         this.title = title;
         this.setType(type);
         this.attributes = [];
-        this.setParentClass(parentClassName);
-        if ( dbName ) this.dbName = dbName;
-        // this.model = {}; // model is calculated only
-        // or could be stored only after calling getModel() ?
+        if ( db ) {
+            this.db = db;
+            // this.setParentClass(parentClassName);
+            this.db.addClass(this); // TODO: yet to implement
+        }
     }
 
     getName() {
         return this.name;
     }
 
-    getDbName() {
-        return this.dbName;
-    }
-
-    getDbManager() {
-        let dbName = this.getDbName();
-        let db = new DbManager(dbName);
-        return db;
+    getDb() {
+        return this.db;
     }
 
     getTitle() {
@@ -44,6 +39,7 @@ class Class {
         model["name"] = this.getName();
         model["description"] = this.getTitle();
         model["schema"] = [];
+        model["type"] = this.getType();
         // iterate over attributes and append their model
         for ( let attribute of this.getAttributes() ) {
             let attributeModel = attribute.getModel();
@@ -61,16 +57,16 @@ class Class {
     }
 
     async getSuperClassIfExists( superClassName ) {
-        let db = this.getDbManager();
+        let db = this.getDb();
         let schema = await db.getClassModel(SUPERCLASS_TYPE, superClassName);
-
+        return null; // TODO: change into superclass object
     }
 
-    setParentClass( superClassName ) {
-        let parentClass = this.getSuperClassIfExists(superClassName);
+    async setParentClass( superClassName ) {
+        let parentClass = await this.getSuperClassIfExists(superClassName);
         if ( parentClass ) {
             // ereditate all attributes
-            parentClass.getAttributes()
+            // parentClass.getAttributes()
             this.parentClass = parentClass;
         }
     }
@@ -134,13 +130,12 @@ class Class {
             let name = attribute.getName();
             if ( !this.hasAttribute(name) ) {
                 this.attributes.push(attribute);
-                // Check if this class has subclasses
-
+                // TODO: Check if this class has subclasses
+                // if ( this.class ) 
+                return this; // return class object
             } else throw Error("Attribute with name "+name+" already exists within this Class")
-            // TODO: improve error above
         } catch (e) {
-            // TODO:
-            console.log("Class - got error while adding attribute",e);
+            throw Error(e);
         }
     }
 

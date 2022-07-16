@@ -204,23 +204,23 @@ class DbManager {
      * @param {JSON} attrs
      * @returns {JSON}
      */
-    prepareDoc (_id, className, params, attrs) {
+    prepareDoc (_id, type, params) {
+        logger.info({_id: _id, type: type, params: params}, "prepaerDoc - given args");
         let doc = {};
         doc = Object.assign(doc, params);
         // TODO: consider managin defaults in another way
-        var defaults = { class: className, creationTimestamp: new Date().toISOString() };
+        var defaults = { type: type, timestamp: new Date().toISOString() };
         if ( _id != null ) defaults = Object.assign(defaults, { _id: _id});
         doc = Object.assign(doc, defaults);
-        attrs ? doc = Object.assign(doc, attrs) : null;
         logger.info({"doc": doc}, "prepareDoc - after elaborations");
         return doc;
     }
 
-    async createDoc(docId, className, params, attrs) {
+    async createDoc(docId, type, params) {
         let db = this.db;
         try {
-            let doc = this.prepareDoc(docId, className, params, attrs);
-            let response = await db.put(doc);
+            let doc = this.prepareDoc(docId, type, params);
+            let response = docId ? await db.put(doc) : await db.post(doc);
             logger.info({"response": response}, "createDoc - Response after put");
             if (response.ok) return response.id
             else throw new Error(response)
@@ -252,7 +252,11 @@ class DbManager {
         // })
     }
 
-    
+    async addClass( classObj ) {
+        // let doc = this.db.prepareDoc(null, classObj.getType(), classObj);
+        let result = await this.createDoc(null, classObj.getType(), classObj.getModel());
+        return result;
+    }
     ////////////////////////////////////////////////////
 
     async checkdb(db) {
@@ -282,7 +286,7 @@ class DbManager {
 
     async initdb (db) {
         try {
-            const res = await dbManage.checkdb(db)
+            const res = await this.checkdb(db)
             // console.log("initdb - res", res)
             if (!res) {
                 // console.log("initdb - initializing db")

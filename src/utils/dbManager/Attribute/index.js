@@ -2,7 +2,7 @@
 const ATTRIBUTE_TYPES = ["string", "number", "integer"];
 
 class Attribute {
-    constructor(schema, name, type, config) {
+    constructor(name, type, config, classObj = null) {
         // [TODO] Should check if attribute with this name
         // already exist whithin its context
         this.name = name;
@@ -11,9 +11,12 @@ class Attribute {
             name: this.name
         });
         this.setType(type, config)
-        // TODO: check if this is just a reference and it doesnt cause
-        // performance problems
-        this.schema = schema;
+        // if it's given a class
+        if ( classObj ) {
+            // attempt to add attribute
+            this.class = classObj;
+            this.class.addAttribute(this);
+        }
     }
 
     getModel() {
@@ -22,7 +25,6 @@ class Attribute {
 
     setModel( model ) {
         let currentModel = this.getModel();
-        debugger;
         model = Object.assign(currentModel, model);
         this.model = model;
     }
@@ -52,6 +54,10 @@ class Attribute {
     }
 
     // TODO: change to imported const default configs for types
+    // as of now it accepts only string
+    // TODO: since config depends on attribute's type, 
+    // find a way to check if given configs are correct
+    // find a way to add default configs base on type
     getTypeRegex( type, config ) {
         config = Object.assign({ charLength: 50, isArray: false }, config );
         switch( type ) {

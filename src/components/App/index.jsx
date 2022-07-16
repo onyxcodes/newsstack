@@ -22,8 +22,27 @@ const TestBed = () => {
   console.log(Class);
   console.log(Attribute)
   let testDbMg = new DbManager("testDb");
-  
+  var TestClass = new Class(testDbMg, "TestClass", "class");
+
+  // Create attribute and adds it to above class
+  var TestAttribute = new Attribute("TestAttribute", "string", { charLength: 100 })
+
+  // add attribute to TestClass
+  TestClass.addAttribute(TestAttribute);
+
+  // Should cause error since attribute with the same name was already added 
+  try {
+    let TestAttributeWithClass = new Attribute("TestAttribute", "string", { charLength: 100 }, TestClass);
+  } catch (e) {
+    console.log("Error", e);
+  }
+ 
+  // Should auto add attribute to above class
+  let TestAnotherAttrWithClass = new Attribute("TestAnotherAttr", "string", { charLength: 100, isArray: true }, TestClass);
   debugger;
+
+  // dbManager specific tests
+  // let testPreparedDoc = testDbMg.prepareDoc(null, "TestClass", )
   return (
     <div>
       <button>GO</button>
@@ -34,9 +53,9 @@ const TestBed = () => {
 const FeedSearchWrapper = () => {
   return (
     <div>
-      <FeedSearchBar/>
-      <FeedSearchResult/>
-      <TestBed/>
+      <FeedSearchBar />
+      <FeedSearchResult />
+      <TestBed />
     </div>
   )
 }
@@ -58,8 +77,8 @@ class App extends Component {
     return (
       <Router>
         <Routes>
-          <Route exact path="/" element={<SignInWrapper/>}/>
-          <Route path="/app" element={<Auth><FeedSearchWrapper/></Auth>} />
+          <Route exact path="/" element={<SignInWrapper />} />
+          <Route path="/app" element={<Auth><FeedSearchWrapper /></Auth>} />
         </Routes>
       </Router>
     );
