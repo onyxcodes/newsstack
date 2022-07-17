@@ -47,7 +47,7 @@ class Attribute {
     setType( type, config ) {
         if ( this.checkTypeValidity(type) ) {
             let model = {};
-            model.valid = this.getTypeRegex(type, config);
+            model.valid = this.getTypeConf(type, config);
             model.type = type;
             this.setModel(model);
         } else throw Error("Invalid attribute type: "+type)
@@ -73,14 +73,28 @@ class Attribute {
     // TODO: since config depends on attribute's type, 
     // find a way to check if given configs are correct
     // find a way to add default configs base on type
-    getTypeRegex( type, config ) {
-        config = Object.assign({ charLength: 50, isArray: false }, config );
+    getTypeConf( type, config ) {
+        let typeObj = {};
         switch( type ) {
             // TODO: add missing cases and change values to imported const 
+            case "decimal":
+                config = Object.assign({ max: null, min: null, precision: null, isArray: false}, config);
+            break;
+            case "integer":
+                config = Object.assign({ max: null, min: null, isArray: false}, config);
+            break;
             case "string":
+                config = Object.assign({ charLength: 50, isArray: false }, config );
+            break;
             default:
-                return "^[a-zA-Z0-9_\\s]".concat("{0,"+config.charLength+"}$");
+                throw new Error("Unexpected type: "+type);
+                // return "^[a-zA-Z0-9_\\s]".concat("{0,"+config.charLength+"}$");
         }
+        typeObj = Object.assign({
+            type: type,
+            config: config
+        }, typeObj);
+        return typeObj
     }
 }
 

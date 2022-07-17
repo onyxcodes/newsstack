@@ -8,7 +8,7 @@ const browserLogger = logger({
           console.log(o)
         },
         error: function (o) {
-          //process error log object
+          console.log(o)
         }
       }
     }

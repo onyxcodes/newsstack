@@ -21,31 +21,90 @@ class DbManager {
      * 
      * @param {String} dbName 
      */
-    constructor(dbName) {
+    constructor(dbName, db = null) {
         /**
          * @property {PouchDB.Database<{}>} db
          */
-        try {
-            if ( dbName ) this.db = new PouchDB(dbName)
-            else throw new Error("Invalid database name", dbName)
-        } catch (e) {
+        if ( dbName && !db ) this.db = new PouchDB(dbName)
+        else if ( dbName == null ) throw new Error("Invalid database name", dbName);
+        // TODo: improve db name check
+        else if ( db ) this.db = db;
 
+        this.lastDocId = 0;
+    }
+
+    static async build( dbManagerObj ) {
+        debugger;
+        dbManagerObj = await dbManagerObj.initdb();
+        // dbManagerObj = await dbManagerObj.incrementLastDocId();
+        return dbManagerObj;
+    }
+
+    async getLastDocId() {
+        let lastDocId = 0;
+        try {
+            // let res = await this.db.info();
+            // logger.info({"response": res}, "checkdb - Info");
+            debugger;
+            let doc = await this.db.get("lastDocId");
+            lastDocId = doc.value;
+            // lastDocId = await this.db.get("lastDocId")?.value;
+        } catch (e) {
+            logger.error({"error": e}, "checkdb - something went wrong");
+        }
+        // return ""+(lastDocId|| 0)
+        return ""+lastDocId
+    }
+
+    async initdb () {
+        try {
+            let lastDocId = await this.getLastDocId();
+            debugger;
+            lastDocId = Number(lastDocId);
+            // console.log("initdb - res", res)
+            if (!lastDocId) {
+                // console.log("initdb - initializing db")
+                let response = await this.db.put({
+                    _id: "lastDocId",
+                    value: ++lastDocId
+                });
+                if (response.ok) this.lastDocId = lastDocId;
+                else throw new Error("Got problem while putting doc", response);
+            } else {
+                console.log("initdb - db already initialized, consider purge")
+            }
+            return this;
+        } catch (e) {
+            throw new Error("initdb -  something went wrong", e);
         }
     }
 
+    async incrementLastDocId() {
+        let docId = "lastDocId",
+            _rev = await this.getDocRevision(docId);
+        await this.db.put({
+            _id: "lastDocId",
+            _rev: _rev,
+            value: ++this.lastDocId
+        }).value;
+        return this;
+    }
+
     /**
-     * TODO: consider chaing name to "clear"
      * @description cleardb - that's what it does
      * @param {PouchDB.Database<{}>} db
      * @returns {Promise<boolean>}
      */
-    async cleardb (db) {
+    async clear () {
         try {
-            let res = await db.destroy();
-            if ( res.ok ) return true;
+            let res = await this.db.destroy();
+            if ( res.ok ) {
+                logger.info("clear - Destroyed db");
+                return true;
+            }
             else throw new Error(res)
         } catch (e) {
-            logger.error({"error": e}, "cleardb")
+            logger.error({"error": e}, "clear - Error while destroying db")
         }
         
     }
@@ -207,60 +266,58 @@ class DbManager {
     prepareDoc (_id, type, params) {
         logger.info({_id: _id, type: type, params: params}, "prepaerDoc - given args");
         let doc = {};
-        // TODO: attempt to stringify any array value
-        for ( const [key, value] of Object.entries(params) ) {
-            if (value instanceof Array && value.length ) {
-                params[key] = JSON.stringify(value);
-            }
-        }
         doc = Object.assign(doc, params);
-        // TODO: consider managin defaults in another way
-        var defaults = { type: type, testArr: [1, 2, 3], timestamp: new Date().toISOString() };
+        // TODO: consider managin defaults in another way, pouchdb plugin for triggers
+        var defaults = { type: type, timestamp: new Date().toISOString() };
         if ( _id != null ) defaults = Object.assign(defaults, { _id: _id});
         doc = Object.assign(doc, defaults);
         logger.info({"doc": doc}, "prepareDoc - after elaborations");
         return doc;
     }
 
-    async createDoc(docId, type, params) {
-        let db = this.db;
+    async getDocRevision(docId) {
+        let rev; 
         try {
-            let doc = this.prepareDoc(docId, type, params);
-            debugger;
-            let response = docId ? await db.put(doc) : await db.post(doc);
+            let doc = await this.db.get(docId);
+            rev = doc?._rev;
+        } catch (e) {
+            throw new Error(e);
+        }
+        return rev;
+    }
+
+    async createDoc(docId, type, params) {
+        let db = this.db,
+            doc = {};
+        try {
+            doc = this.prepareDoc(docId, type, params);
+            if ( docId ) {
+                doc._rev = await this.getDocRevision(docId);
+                if ( doc._rev == null ) throw new Error("Doc with given id `"+docId+"` was not found")
+                // means that the given docId was not found
+                // therefore throw error
+            } else  {
+                //generate controlled docId
+                debugger;
+                docId = ""+this.lastDocId+1;
+            }
+            doc = Object.assign({_id: docId}, doc);
+            let response = await db.put(doc);
             logger.info({"response": response}, "createDoc - Response after put");
             if (response.ok) {
-                let uploadedDoc = await db.get(response.id);
-                logger.info({"doc": uploadedDoc}, "createDoc - Uploaded doc")
+                this.incrementLastDocId();
+                // let uploadedDoc = await db.get(response.id);
+                // logger.info({"doc": uploadedDoc}, "createDoc - Uploaded doc")
                 return response.id;
             }
             else throw new Error(response)
         } catch (e) {
-            logger.error({"error": e}, "createDoc - Problem while putting doc")
+            logger.error({
+                "error": e,
+                "document": doc
+            }, "createDoc - Problem while putting doc")
             // throw new Error(e); // TODO understand if needed
         }
-        // return new Promise((resolve, reject) => {
-            // if (docId == null) {
-            //     let doc = this.prepareDoc(null, className, params, attrs);
-            //     // console.log("createDoc - newDoc:", newDoc)
-            //     db.post(doc).then((response) => {
-            //         (response.ok) ? resolve(response.id) : null// console.log("error")
-            //     }).catch((err) => {
-            //         // console.log(err)
-            //         reject(err)
-            //     })
-            // } else {
-            //     let doc = this.prepareDoc(docId, className, params, attrs);
-            //     // console.log("createDoc - newDoc after additional params:", newDoc)
-            //     db.put(doc).then((response) => {
-            //         // console.log("createDoc - dbput response", response)
-            //         response.ok ? resolve(response.id) : null// console.log("error")
-            //     }).catch((err) => {
-            //         // console.log(err)
-            //         reject(err)
-            //     })
-            // }
-        // })
     }
 
     async addClass( classObj ) {
@@ -274,129 +331,6 @@ class DbManager {
         return result;
     }
     ////////////////////////////////////////////////////
-
-    async checkdb(db) {
-        try {
-            let res = await db.info();
-            logger.info({"response": res}, "checkdb - Info");
-            let hasInit = await db.get("init");
-            return hasInit.init // When true is already initialized
-        } catch (e) {
-            logger.error({"error": e}, "checkdb - something went wrong");
-        }
-        
-        // return new Promise((resolve, reject) => {
-        //     db.info().then((res) => {
-        //         // console.log("checkdb - info", res)
-        //         db.get("init").then(res => {
-        //             // console.log("checkdb - initialized", res)
-        //             res.init ? resolve(true) : resolve(false)
-        //         }).catch((err) => {
-        //             resolve(false)
-        //         })
-        //     }).catch((err) => {
-        //         reject(new Error("checkdb - something went wrong", err))
-        //     })
-        // })
-    }
-
-    async initdb (db) {
-        try {
-            const res = await this.checkdb(db)
-            // console.log("initdb - res", res)
-            if (!res) {
-                // console.log("initdb - initializing db")
-                let params_nb = {
-                    description: "Notebook",
-                    schema: [
-                        {
-                            type: "string",
-                            valid: "^[a-zA-Z0-9_\\s]{0,50}$",
-                            name: "name"
-                        },
-                        {
-                            type: "array",
-                            valid: "^[a-zA-Z0-9_\\s]{0,50}$",
-                            name: "tags"
-                        }
-                    ]
-                }
-                dbManage.createDoc(db, "notebook", "class", params_nb)
-                let params_note = {
-                    description: "Note",
-                    schema: [
-                        {
-                            type: "string",
-                            valid: "^[a-zA-Z0-9_\\s]{0,50}$",
-                            name: "name"
-                        }
-                    ]
-                }
-                dbManage.createDoc(db, configDatabase.NOTE_CLASS, "class", params_note)
-
-                let domain_cardinality = new Array(2)
-                domain_cardinality = ["1", "N"]
-                let params_domain = {
-                    description: "Notebook_Note",
-                    cardinality: domain_cardinality,
-                    schema: [
-                        {
-                            type: "class",
-                            valid: "^[a-zA-Z0-9_\\s]{0,50}$",
-                            name: "class1"
-                        },
-                        {
-                            type: "docid",
-                            valid: "([[:alnum:]]+|-)",
-                            name: "doc1"
-                        },
-                        {
-                            type: "class",
-                            valid: "^[a-zA-Z0-9_\\s]{0,50}$",
-                            name: "class2"
-                        },
-                        {
-                            type: "docid",
-                            valid: "([[:alnum:]]+|-)",
-                            name: "doc2"
-                        }
-                    ]
-                }
-                let domain = dbManage.createDoc(db, configDatabase.NOTEBOOK_NOTE_CLASS,
-                    "class",
-                    params_domain
-                )
-                // Create domain and add reference to note schema
-                domain.then((res_1) => {
-                    // in res there should be the id of the domain
-                    params_note.schema = params_note.schema.concat(
-                        {
-                            type: "docid",
-                            valid: "([[:alnum:]]+|-)",
-                            name: "notebook"
-                        }
-                    )
-                    dbManage.updateDoc(db, configDatabase.NOTE_CLASS, "class", params_note).then(
-                        (response) => {// console.log("dbinit - updated note schema", response)
-                        }
-                    ).catch(err => {// console.log("dbinit - couldn't update note schema", err))
-                    })
-                })
-                db.put({
-                    _id: "init",
-                    init: true
-                }).then(res_2 => {
-                    resolve(res_2)
-                }).catch(err_1 => {
-                    reject(err_1)
-                })
-            } else {
-                // console.log("initdb - db already initialized, consider purge")
-            }
-        } catch (err_2) {
-            reject(new Error("initdb -  something went wrong", err_2))
-        }
-    }
 
     // /**
     //  * @description dump - return a string representing the dump of a db
